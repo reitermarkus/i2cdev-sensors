@@ -37,7 +37,7 @@ pub trait Gyroscope {
 }
 
 pub trait Magnetometer {
-    type Error: Errosr;
+    type Error: Error;
 
     /// Returns 'Ok(mag)' if available, otherwise returns 'Err(Self::Error)'
     fn magnetic_reading(&mut self) -> Result<Vec3, Self::Error>;
