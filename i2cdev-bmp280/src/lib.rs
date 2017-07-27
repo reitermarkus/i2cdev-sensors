@@ -22,6 +22,7 @@ use std::error::Error;
 use i2cdev::core::I2CDevice;
 use i2cdev::linux::LinuxI2CDevice;
 use byteorder::{ByteOrder, BigEndian};
+use std::error::Error;
 
 pub const BMP280_I2C_ADDR: u16 = 0x77;
 
@@ -193,7 +194,7 @@ impl<T> BMP280<T>
 impl<T> Thermometer for BMP280<T>
     where T: I2CDevice + Sized
 {
-    fn temperature_celsius(&mut self) -> Result<f32, Self::Error> {
+    fn temperature_celsius(&mut self) -> Result<f32, Error> {
         let adc_t = self.read_temp_raw();
         self.compensate_temperature(adc_t)
     }
@@ -202,7 +203,7 @@ impl<T> Thermometer for BMP280<T>
 impl<T> Barometer for BMP280<T>
     where T: I2CDevice + Sized
 {
-    fn pressure_kpa(&mut self) -> Result<f32, Self::Error> {
+    fn pressure_kpa(&mut self) -> Result<f32, Error> {
         let adc_p = self.read_press_raw();
         self.compensate_pressure(adc_p)
     }
