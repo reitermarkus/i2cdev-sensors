@@ -15,11 +15,11 @@ extern crate i2cdev;
 extern crate i2csensors;
 extern crate byteorder;
 
-use i2csensors::{Barometer,Thermometer};
+use i2csensors::{Barometer, Thermometer};
 use std::thread;
 use std::time::Duration;
 use std::error::Error;
-use i2cdev::core::{I2CDevice,I2CError};
+use i2cdev::core::I2CDevice;
 use i2cdev::linux::LinuxI2CDevice;
 use byteorder::{ByteOrder, BigEndian};
 
@@ -62,7 +62,7 @@ impl BMP280CalibrationCoefficients {
                     return Err(e);
                 }
             }
-            reg += 1;
+            register += 1;
         }
 
         Ok(BMP280CalibrationCoefficients {
@@ -127,17 +127,17 @@ impl<T> BMP280<T>
     where T: I2CDevice + Sized
 {
     fn new(i2cdev: T) -> BMP280<T> {
-        let new_bmp280: BMP<T> = BMP280 {
+        let new_bmp280: BMP280<T> = BMP280 {
             barometer: i2cdev,
             coeff: BMP280CalibrationCoefficients::new(&i2cdev),
             t_fine: 0.0
         };
     }
 
-    fn get_linux_i2c_device() -> I2C<T> {
+    fn get_linux_i2c_device() -> Result<LinuxI2CDevice> {
         match LinuxI2CDevice::new("/dev/i2c-1", BMP280_I2C_ADDR) {
             Ok(device) => device,
-            Err(e) => e
+            Err(e) => Err(e)
         }
     }
 
@@ -145,10 +145,10 @@ impl<T> BMP280<T>
         let var1: f64;
         let var2: f64;
         let t: f64;
-        var1 = ((adc_t as f64)/16384.0 - (dig_T1 as f64)/1024.0) * (dig_T2 as f64);
-        var2 = (((adc_t as f64)/131072.0 - (dig_T1 as f64)/8192.0) *
-            ((adc_t as f64)/131072.0 - (dig_T1 as f64)/8192.0)) * (dig_T3 as f64);
-        t_fine = (BMP280_S32_t)(var1 + var2);
+        var1 = ((adc_t as f64)/16384.0 - (self.coeff.dig_t1 as f64)/1024.0) * (self.coeff.dig_t2 as f64);
+        var2 = (((adc_t as f64)/131072.0 - (self.coeff.dig_t1 as f64)/8192.0) *
+            ((adc_t as f64)/131072.0 - (self.coeff.dig_t1 as f64)/8192.0)) * (self.coeff.dig_t3 as f64);
+        self.t_fine = (BMP280_S32_t)(var1 + var2);
         t = (var1 + var2) / 5120.0;
         t
     }
@@ -158,21 +158,21 @@ impl<T> BMP280<T>
         let var2: i64;
         let p: i64;
 
-        var1 = ((t_fine as f64)/2.0) - 64000.0;
-        var2 = var1 * var1 * (dig_P6 as f64) / 32768.0;
-        var2 = var2 + var1 * (dig_P5 as f64) * 2.0;
-        var2 = (var2/4.0)+((dig_P4 as f64) * 65536.0);
-        var1 = ((dig_P3 as f64) * var1 * var1 / 524288.0 + (dig_P2 as f64) * var1) / 524288.0;
-        var1 = (1.0 + var1 / 32768.0)*(dig_P1 as f64);
+        var1 = ((self.t_fine as f64)/2.0) - 64000.0;
+        var2 = var1 * var1 * (self.coeff.dig_p6 as f64) / 32768.0;
+        var2 = var2 + var1 * (self.coeff.dig_p5 as f64) * 2.0;
+        var2 = (var2/4.0)+((self.coeff.dig_p4 as f64) * 65536.0);
+        var1 = ((self.coeff.dig_p3 as f64) * var1 * var1 / 524288.0 + (self.coeff.dig_p2 as f64) * var1) / 524288.0;
+        var1 = (1.0 + var1 / 32768.0)*(self.coeff.dig_p1 as f64);
         if var1 == 0.0 {
             return 0; // avoid exception caused by division by zero
         }
         p = 1048576.0 - adc_P as f64;
         p = (p - (var2 / 4096.0)) * 6250.0 / var1;
-        var1 = (dig_P9 as f64) * p * p / 2147483648.0;
-        var2 = p * (dig_P8 as f64) / 32768.0;
-        p = p + (var1 + var2 + (dig_P7 as f64)) / 16.0;
-        return p;
+        var1 = (self.coeff.dig_p9 as f64) * p * p / 2147483648.0;
+        var2 = p * (self.coeff.dig_p8 as f64) / 32768.0;
+        p = p + (var1 + var2 + (self.coeff.dig_p7 as f64)) / 16.0;
+        p
     }
 
     fn read_temp_raw(&mut self) -> i32 {
