@@ -197,14 +197,18 @@ impl<T> BMP280<T>
 impl<T> Thermometer for BMP280<T>
     where T: I2CDevice + Sized
 {
-
+    fn temperature_celsius(&mut self) -> Result<f32, Self::Error> {
+        let adc_t = self.read_temp_raw();
+        self.compensate_temperature(adc_t)
+    }
 }
 
 impl<T> Barometer for BMP280<T>
     where T: I2CDevice + Sized
 {
-    fn temperature_celsius(&mut self) -> Result<f32, Self::Error> {
-        0.0
+    fn pressure_kpa(&mut self) -> Result<f32, Self::Error> {
+        let adc_p = self.read_press_raw();
+        self.compensate_pressure(adc_p)
     }
 }
 
