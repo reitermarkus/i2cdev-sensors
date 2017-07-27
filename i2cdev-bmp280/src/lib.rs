@@ -167,7 +167,7 @@ impl<T> BMP280<T>
         if var1 == 0.0 {
             return 0; // avoid exception caused by division by zero
         }
-        p = 1048576.0 - adc_P as f64;
+        p = 1048576.0 - adc_p as f64;
         p = (p - (var2 / 4096.0)) * 6250.0 / var1;
         var1 = (self.coeff.dig_p9 as f64) * p * p / 2147483648.0;
         var2 = p * (self.coeff.dig_p8 as f64) / 32768.0;
@@ -175,21 +175,17 @@ impl<T> BMP280<T>
         p
     }
 
-    fn read_temp_raw(&mut self) -> i32 {
+    fn read_temp_raw(&mut self) -> result<i32,std::string::String> {
         match self.barometer.smbus_read_block_data() {
             Ok(bytes) => BigEndian::read_i32(bytes.as_slice()),
-            Err(e) => {
-                println!("Couldn't read bmp280 temperature reg: {}", e);
-            }
+            Err(e) => Err(e)
         }
     }
 
-    fn read_press_raw(&mut self) -> i32 {
+    fn read_press_raw(&mut self) -> result<i32,std::string::String> {
         match self.barometer.smbus_read_block_data() {
             Ok(bytes) => BigEndian::read_i32(bytes.as_slice()),
-            Err(e) => {
-                println!("Couldn't read bmp280 temperature reg: {}", e);
-            }
+            Err(e) => Err(e)
         }
     }
 }
