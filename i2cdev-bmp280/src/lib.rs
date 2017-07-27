@@ -193,7 +193,7 @@ impl<T> BMP280<T>
 impl<T> Thermometer for BMP280<T>
     where T: I2CDevice + Sized
 {
-    type Error = Error<std::string::String>;
+    type Error = Error;
 
     fn temperature_celsius(&mut self) -> Result<f32, Error> {
         let adc_t = self.read_temp_raw();
@@ -204,7 +204,7 @@ impl<T> Thermometer for BMP280<T>
 impl<T> Barometer for BMP280<T>
     where T: I2CDevice + Sized
 {
-    type Error = Error<std::string::String>;
+    type Error = Error;
 
     fn pressure_kpa(&mut self) -> Result<f32, Error> {
         let adc_p = self.read_press_raw();
