@@ -67,7 +67,7 @@ impl BMP280CalibrationCoefficients {
 
         Ok(BMP280CalibrationCoefficients {
             dig_t1: BigEndian::read_u16(&buf[0..2]),
-            dig_t2: BigEndian::read_i16(&buf[2..4])
+            dig_t2: BigEndian::read_i16(&buf[2..4]),
             dig_t3: BigEndian::read_i16(&buf[4..6]),
             dig_p1: BigEndian::read_u16(&buf[6..8]),
             dig_p2: BigEndian::read_i16(&buf[8..10]),
@@ -134,7 +134,7 @@ impl<T> BMP280<T>
         };
     }
 
-    fn get_linux_i2c_device() -> Result<LinuxI2CDevice> {
+    fn get_linux_i2c_device() -> Result<LinuxI2CDevice, std::string::String> {
         match LinuxI2CDevice::new("/dev/i2c-1", BMP280_I2C_ADDR) {
             Ok(device) => device,
             Err(e) => Err(e)
@@ -148,7 +148,7 @@ impl<T> BMP280<T>
         var1 = ((adc_t as f64)/16384.0 - (self.coeff.dig_t1 as f64)/1024.0) * (self.coeff.dig_t2 as f64);
         var2 = (((adc_t as f64)/131072.0 - (self.coeff.dig_t1 as f64)/8192.0) *
             ((adc_t as f64)/131072.0 - (self.coeff.dig_t1 as f64)/8192.0)) * (self.coeff.dig_t3 as f64);
-        self.t_fine = (BMP280_S32_t)(var1 + var2);
+        self.t_fine = (var1 + var2) as i32;
         t = (var1 + var2) / 5120.0;
         t
     }
