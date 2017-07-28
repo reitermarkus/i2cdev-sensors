@@ -3,6 +3,14 @@ name = "i2cdev-bmp280"
 version = "0.1.0"
 authors = ["martindeegan <mddeegan@gmail.com>"]
 
+[lib]
+name = "i2cdevbmp280"
+path =  "src/lib.rs"
+
+[[bin]]
+name = "bmp280bin"
+path = "src/main.rs"
+
 [dependencies]
 i2cdev = "0.3.1"
 byteorder = "1"
