@@ -1,8 +1,8 @@
-extern crate i2cdevbmp280;
+extern crate i2cdev_bmp280;
 extern crate i2csensors;
 extern crate i2cdev;
 
-use i2cdevbmp280::*;
+use i2cdev_bmp280::*;
 use i2csensors::Thermometer;
 use i2csensors::Barometer;
 use std::thread;
@@ -31,7 +31,6 @@ fn main() {
                         thread::sleep(Duration::from_millis(50));
                     }
 
-//                    bmp280.test_calculate_real_pressure();
                     thread::sleep(Duration::from_millis(500));
                 },
                 Err(e) => {}

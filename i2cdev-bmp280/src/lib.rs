@@ -33,8 +33,6 @@ const BMP280_TEMP_MSB: u8 = 0xFA;
 const BMP280_TEMP_LSB: u8 = 0xFB;
 const BMP280_TEMP_XLSB: u8 = 0xFC;
 
-
-
 pub enum BMP280CompensationAlgorithm{
     B32,
     B64,
