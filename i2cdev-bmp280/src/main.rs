@@ -3,8 +3,7 @@ extern crate i2csensors;
 extern crate i2cdev;
 
 use i2cdev_bmp280::*;
-use i2csensors::Thermometer;
-use i2csensors::Barometer;
+use i2csensors::{Barometer, Thermometer};
 use std::thread;
 use std::time::Duration;
 
