@@ -3,6 +3,14 @@ name = "i2cdev-l3gd20"
 version = "0.1.0"
 authors = ["martindeegan <mddeegan@gmail.com>"]
 
+[lib]
+name = "i2cdev_l3gd20"
+path =  "src/lib.rs"
+
+[[bin]]
+name = "l3gd20_bin"
+path = "src/main.rs"
+
 [dependencies]
 i2cdev = "0.3.1"
 byteorder = "1"
