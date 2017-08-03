@@ -4,7 +4,7 @@ version = "0.1.0"
 authors = ["martindeegan <mddeegan@gmail.com>"]
 
 [lib]
-name = "i2cdev_lms9ds0"
+name = "i2cdev_lsm9ds0"
 path =  "src/lib.rs"
 
 [[bin]]

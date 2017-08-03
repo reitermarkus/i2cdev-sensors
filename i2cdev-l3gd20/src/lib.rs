@@ -15,7 +15,7 @@ extern crate i2cdev;
 extern crate i2csensors;
 extern crate byteorder;
 
-use i2csensors::{Accelerometer,Magnetometer,Gyroscope};
+use i2csensors::Gyroscope;
 use i2csensors::Vec3;
 use std::thread;
 use std::time::Duration;
@@ -26,7 +26,7 @@ use byteorder::{ByteOrder, BigEndian, LittleEndian};
 
 // Addresses
 
-pub const L3GD20_ADDR: u16 = 0x6A;
+pub const L3GD20_I2C_ADDR: u16 = 0x6A;
 
 const L3GD20_CTRL_REG1: u8 = 0x20;
 const L3GD20_CTRL_REG2: u8 = 0x21;
@@ -95,9 +95,9 @@ pub struct L3GD20GyroscopeSettings {
     pub continuous_update: bool
 }
 
-/// Get Linux I2C devices at their default registers
+/// Get Linux I2C device at L3GD20's default address
 pub fn get_linux_l3gd20_i2c_device() -> Result<LinuxI2CDevice,LinuxI2CError> {
-    let gyro = try!(LinuxI2CDevice::new("/dev/i2c-1", L3GD20_ADDR));
+    let gyro = try!(LinuxI2CDevice::new("/dev/i2c-1", L3GD20_I2C_ADDR));
     Ok(gyro)
 }
 
@@ -126,7 +126,6 @@ impl<T> L3GD20<T>
                 if gyro_settings.zen { ctrl_reg1 |= 0b100 };
             }
         }
-        println!("{}", format!("{:#b}", ctrl_reg1));
         try!(gyro.smbus_write_byte_data(L3GD20_CTRL_REG1, ctrl_reg1));
 
         let mut ctrl_reg4: u8 = 0_u8 | ((gyro_settings.sensitivity as u8) << 4);
@@ -140,19 +139,19 @@ impl<T> L3GD20<T>
 
         match gyro_settings.sensitivity {
             L3GD20GyroscopeFS::dps250 => {
-                g_gain = 8.75 / 1000.0;
+                g_gain = 8.75;
             },
             L3GD20GyroscopeFS::dps500 => {
-                g_gain = 17.50 / 1000.0;
+                g_gain = 17.50;
             },
             L3GD20GyroscopeFS::dps2000 => {
-                g_gain = 70.0 / 1000.0;
+                g_gain = 70.0;
             }
         }
 
         Ok(L3GD20 {
             gyroscope: gyro,
-            g_gain: g_gain,
+            g_gain: g_gain / 1000.0,
         })
     }
 
@@ -182,11 +181,4 @@ impl<T> Gyroscope for L3GD20<T>
         Ok(angular_velocity)
     }
 
-}
-
-#[cfg(test)]
-mod tests {
-    #[test]
-    fn it_works() {
-    }
 }
