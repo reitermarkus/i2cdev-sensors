@@ -33,6 +33,8 @@ const BMP280_TEMP_MSB: u8 = 0xFA;
 const BMP280_TEMP_LSB: u8 = 0xFB;
 const BMP280_TEMP_XLSB: u8 = 0xFC;
 
+/// Algorithm to process measurements.
+/// Float is significantly more expensive.
 pub enum BMP280CompensationAlgorithm{
     B32,
     B64,
@@ -128,16 +130,17 @@ pub enum BMP280FilterCoefficient {
 }
 
 pub enum BMP280Timing {
-    UltraFast = 0b00000000,
-    VeryFast = 0b00100000,
-    Fast = 0b01000000,
-    MediumFast = 0b01100000,
-    MediumSlow = 0b10000000,
-    Slow = 0b10100000,
-    VerySlow = 0b11000000,
-    UltraSlow = 0b11100000
+    ms0_5 = 0b00000000,
+    ms62_5 = 0b00100000,
+    ms125 = 0b01000000,
+    ms250 = 0b01100000,
+    ms500 = 0b10000000,
+    ms1000 = 0b10100000,
+    ms2000 = 0b11000000,
+    ms4000 = 0b11100000
 }
 
+/// [data sheet](https://ae-bst.resource.bosch.com/media/_tech/media/datasheets/BST-BMP280-DS001-18.pdf)
 pub struct BMP280Settings {
     pub compensation: BMP280CompensationAlgorithm,
     pub t_sb: BMP280Timing,
@@ -411,7 +414,7 @@ mod tests {
             Ok(device) => {
                 let settings = BMP280Settings {
                     compensation: BMP280CompensationAlgorithm::B64,
-                    t_sb: BMP280Timing::UltraFast,
+                    t_sb: BMP280Timing::ms0_5,
                     iir_filter_coeff: BMP280FilterCoefficient::Medium,
                     osrs_t: BMP280TemperatureOversampling::x1,
                     osrs_p: BMP280PressureOversampling::StandardResolution,

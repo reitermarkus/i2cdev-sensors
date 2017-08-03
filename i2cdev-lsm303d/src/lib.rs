@@ -99,18 +99,26 @@ pub enum LSM303DMagnetometerFS {
 /// [Data sheet](http://www.st.com/content/ccc/resource/technical/document/datasheet/1c/9e/71/05/4e/b7/4d/d1/DM00057547.pdf/files/DM00057547.pdf/jcr:content/translations/en.DM00057547.pdf)
 #[derive(Debug, Copy, Clone)]
 pub struct LSM303DSettings {
+    /// Continuously update output registers or wait until read
     pub continuous_update: bool,
     //Accelerometer
+    /// Frequency that accelerometer measurements are made
     pub accelerometer_data_rate: LSM303DAccelerometerUpdateRate,
+    /// Enable accelerometer z axis
     pub azen: bool,
+    /// Enable accelerometer y axis
     pub ayen: bool,
+    /// Enable accelerometer x axis
     pub axen: bool,
+    /// The maximum/minimum (+-) reading of acceleration (Full range)
     pub accelerometer_sensitivity: LSM303DAccelerometerFS,
     //Magnetometer
     pub magnetometer_resolution: LSM303DMagnetometerResolution,
+    /// Frequency that magnetometer measurements are made
     pub magnetometer_data_rate: LSM303DMagnetometerUpdateRate,
     pub magnetometer_low_power_mode: bool,
     pub magnetometer_mode: LSM303DMagnetometerMode,
+    /// The maximum/minimum (+-) reading of magnetism (Full range)
     pub magnetometer_sensitivity: LSM303DMagnetometerFS
 }
 
@@ -225,6 +233,7 @@ impl<T> Magnetometer for LSM303D<T>
 {
     type Error = T::Error;
 
+    /// Returns reading in gauss
     fn magnetic_reading(&mut self) -> Result<Vec3, T::Error> {
         let (x_raw, y_raw, z_raw) = try!(self.magnetometer_read_raw());
         Ok(Vec3 {
@@ -240,6 +249,7 @@ impl<T> Accelerometer for LSM303D<T>
 {
     type Error = T::Error;
 
+    /// Returns acceleration in gs
     fn acceleration_reading(&mut self) -> Result<Vec3, T::Error> {
         let (x_raw, y_raw, z_raw) = try!(self.accelerometer_read_raw());
         Ok(Vec3 {

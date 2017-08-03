@@ -170,6 +170,7 @@ impl<T> Gyroscope for L3GD20<T>
     where T: I2CDevice + Sized
 {
     type Error = T::Error;
+
     /// Returns reading in dps
     fn angular_rate_reading(&mut self) -> Result<Vec3, T::Error> {
         let (x_raw, y_raw, z_raw) = try!(self.read_gyroscope_raw());

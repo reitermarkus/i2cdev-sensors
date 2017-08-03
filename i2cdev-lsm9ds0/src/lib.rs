@@ -165,18 +165,26 @@ pub enum LSM9DS0MagnetometerFS {
 /// [Data sheet](http://www.st.com/content/ccc/resource/technical/document/datasheet/1c/9e/71/05/4e/b7/4d/d1/DM00057547.pdf/files/DM00057547.pdf/jcr:content/translations/en.DM00057547.pdf)
 #[derive(Debug, Copy, Clone)]
 pub struct LSM9DS0AccelerometerMagnetometerSettings {
+    /// Continuously update output registers or wait until read
     pub continuous_update: bool,
     //Accelerometer
+    /// Frequency that accelerometer measurements are made
     pub accelerometer_data_rate: LSM9DS0AccelerometerUpdateRate,
+    /// Enable accelerometer z axis
     pub azen: bool,
+    /// Enable accelerometer y axis
     pub ayen: bool,
+    /// Enable accelerometer x axis
     pub axen: bool,
+    /// The maximum/minimum (+-) reading of acceleration (Full range). Smaller ranges have more precision.
     pub accelerometer_sensitivity: LSM9DS0AccelerometerFS,
     //Magnetometer
     pub magnetometer_resolution: LSM9DS0MagnetometerResolution,
+    /// Frequency that magnetometer measurements are made
     pub magnetometer_data_rate: LSM9DS0MagnetometerUpdateRate,
     pub magnetometer_low_power_mode: bool,
     pub magnetometer_mode: LSM9DS0MagnetometerMode,
+    /// The maximum/minimum (+-) reading of magnetism (Full range). Smaller ranges have more precision.
     pub magnetometer_sensitivity: LSM9DS0MagnetometerFS
 }
 
