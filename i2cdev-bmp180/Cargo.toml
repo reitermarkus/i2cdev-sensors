@@ -6,4 +6,4 @@ authors = ["martindeegan <mddeegan@gmail.com>"]
 [dependencies]
 i2cdev = "0.3.1"
 byteorder = "1"
-i2csensors = { path = "../i2csensors" }
+i2csensors = "0.1.0"
