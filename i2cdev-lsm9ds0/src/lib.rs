@@ -21,6 +21,7 @@ use std::thread;
 use std::time::Duration;
 use std::error::Error;
 use i2cdev::core::I2CDevice;
+#[cfg(any(target_os = "linux", target_os = "android"))]
 use i2cdev::linux::{LinuxI2CDevice,LinuxI2CError};
 use byteorder::{ByteOrder, BigEndian, LittleEndian};
 
@@ -82,8 +83,7 @@ pub enum LSM9DS0GyroscopeFS {
     dps2000 = 0b10
 }
 
-/// Use [data-sheet](http://www.st.com/content/ccc/resource/technical/document/datasheet/43/37/e3/06/b0/bf/48/bd/DM00036465.pdf/files/DM00036465.pdf/jcr:content/translations/en.DM00036465.pdf) to read in depth about settings
-/// Specifically Registers CTRL_REG1_G - CTRL_REG5_G
+/// Use the [data sheet](http://www.st.com/content/ccc/resource/technical/document/datasheet/43/37/e3/06/b0/bf/48/bd/DM00036465.pdf/files/DM00036465.pdf/jcr:content/translations/en.DM00036465.pdf) to read in depth about settings
 #[derive(Debug, Copy, Clone)]
 pub struct LSM9DS0GyroscopeSettings {
     /// Data measurement rate
@@ -162,7 +162,7 @@ pub enum LSM9DS0MagnetometerFS {
     gauss12 = 0b11
 }
 
-/// [Data sheet](http://www.st.com/content/ccc/resource/technical/document/datasheet/1c/9e/71/05/4e/b7/4d/d1/DM00057547.pdf/files/DM00057547.pdf/jcr:content/translations/en.DM00057547.pdf)
+/// Use the [data sheet](http://www.st.com/content/ccc/resource/technical/document/datasheet/1c/9e/71/05/4e/b7/4d/d1/DM00057547.pdf/files/DM00057547.pdf/jcr:content/translations/en.DM00057547.pdf) to read in depth about settings
 #[derive(Debug, Copy, Clone)]
 pub struct LSM9DS0AccelerometerMagnetometerSettings {
     /// Continuously update output registers or wait until read
@@ -191,6 +191,7 @@ pub struct LSM9DS0AccelerometerMagnetometerSettings {
 // Public function
 
 /// Returns (gyroscope, accelerometer/magnetometer) at their default I2C addresses.
+#[cfg(any(target_os = "linux", target_os = "android"))]
 pub fn get_default_lsm9ds0_linux_i2c_devices() -> Result<(LinuxI2CDevice,LinuxI2CDevice),LinuxI2CError> {
     let gyro = try!(LinuxI2CDevice::new("/dev/i2c-1", LSM9DS0_I2C_ADDR_GYRO));
     let accel_mag = try!(LinuxI2CDevice::new("/dev/i2c-1", LSM9DS0_I2C_ADDR_ACCEL_MAG));
@@ -208,6 +209,7 @@ pub struct LSM9DS0<T: I2CDevice + Sized> {
 impl<T> LSM9DS0<T>
     where T: I2CDevice + Sized
 {
+    #[cfg(any(target_os = "linux", target_os = "android"))]
     pub fn new(mut accel_mag: T, mut gyro: T,
                mut gyro_settings: LSM9DS0GyroscopeSettings,
                mut accel_mag_settings: LSM9DS0AccelerometerMagnetometerSettings) -> Result<LSM9DS0<T>, T::Error>
@@ -329,6 +331,7 @@ impl<T> LSM9DS0<T>
 
     }
 
+    #[cfg(any(target_os = "linux", target_os = "android"))]
     fn read_gyroscope_raw(&mut self) -> Result<(i16, i16, i16), T::Error>{
         let mut buf = [0_u8; 6];
         try!(self.gyroscope.write(&[LSM9DS0_INCREMENT_BIT | LSM9DS0_OUT_GYRO]));
@@ -339,6 +342,7 @@ impl<T> LSM9DS0<T>
         Ok((x_raw, y_raw, z_raw))
     }
 
+    #[cfg(any(target_os = "linux", target_os = "android"))]
     fn read_magnetometer_raw(&mut self) -> Result<(i16,i16,i16), T::Error> {
         let mut buf = [0_u8; 6];
         try!(self.accelerometer_magnetometer.write(&[LSM9DS0_INCREMENT_BIT | LSM9DS0_OUT_MAG]));
@@ -349,6 +353,7 @@ impl<T> LSM9DS0<T>
         Ok((x_raw, y_raw, z_raw))
     }
 
+    #[cfg(any(target_os = "linux", target_os = "android"))]
     fn read_accelerometer_raw(&mut self) -> Result<(i16, i16, i16), T::Error> {
         let mut buf: [u8; 6] = [0_u8; 6];
         try!(self.accelerometer_magnetometer.write(&[LSM9DS0_INCREMENT_BIT | LSM9DS0_OUT_ACC]));
@@ -364,8 +369,13 @@ impl<T> Accelerometer for LSM9DS0<T>
     where T: I2CDevice + Sized
 {
     type Error = T::Error;
+    #[cfg(not(any(target_os = "linux", target_os = "android")))]
+    fn acceleration_reading(&mut self) -> Result<Vec3, T::Error> {
+        Ok(Vec3::zeros())
+    }
 
     /// Returns reading in gs
+    #[cfg(any(target_os = "linux", target_os = "android"))]
     fn acceleration_reading(&mut self) -> Result<Vec3, T::Error> {
         let (x_raw, y_raw, z_raw) = try!(self.read_accelerometer_raw());
         let acceleration = Vec3 {
@@ -382,8 +392,13 @@ impl<T> Magnetometer for LSM9DS0<T>
     where T: I2CDevice + Sized
 {
     type Error = T::Error;
+    #[cfg(not(any(target_os = "linux", target_os = "android")))]
+    fn magnetic_reading(&mut self) -> Result<Vec3, T::Error> {
+        Ok(Vec3::zeros())
+    }
 
     /// Returns reading in gauss
+    #[cfg(any(target_os = "linux", target_os = "android"))]
     fn magnetic_reading(&mut self) -> Result<Vec3, T::Error> {
         let (x_raw, y_raw, z_raw) = try!(self.read_magnetometer_raw());
         let magnetic_reading = Vec3 {
@@ -400,7 +415,13 @@ impl<T> Gyroscope for LSM9DS0<T>
     where T: I2CDevice + Sized
 {
     type Error = T::Error;
+    #[cfg(not(any(target_os = "linux", target_os = "android")))]
+    fn angular_rate_reading(&mut self) -> Result<Vec3, T::Error> {
+        Ok(Vec3::zeros())
+    }
+
     /// Returns reading in dps
+    #[cfg(any(target_os = "linux", target_os = "android"))]
     fn angular_rate_reading(&mut self) -> Result<Vec3, T::Error> {
         let (x_raw, y_raw, z_raw) = try!(self.read_gyroscope_raw());
         let angular_velocity = Vec3 {

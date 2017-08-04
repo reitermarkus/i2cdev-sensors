@@ -6,6 +6,12 @@ use i2csensors::Gyroscope;
 use std::thread;
 use std::time::Duration;
 
+#[cfg(not(any(target_os = "linux", target_os = "android")))]
+fn main() {
+
+}
+
+#[cfg(any(target_os = "linux", target_os = "android"))]
 fn main() {
     let settings = L3GD20GyroscopeSettings {
         DR: L3GD20GyroscopeDataRate::Hz190,

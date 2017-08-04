@@ -7,14 +7,18 @@ use i2csensors::{Barometer, Thermometer};
 use std::thread;
 use std::time::Duration;
 
+#[cfg(not(any(target_os = "linux", target_os = "android")))]
+fn main() {}
+
+#[cfg(any(target_os = "linux", target_os = "android"))]
 fn main() {
     println!("BMP280 Barometer Thermometer.");
-    match i2cdevbmp280::get_linux_bmp280_i2c_device() {
+    match i2cdev_bmp280::get_linux_bmp280_i2c_device() {
         Ok(device) => {
             println!("Created new device.");
             let settings = BMP280Settings {
                 compensation: BMP280CompensationAlgorithm::B64,
-                t_sb: BMP280Timing::UltraFast,
+                t_sb: BMP280Timing::ms0_5,
                 iir_filter_coeff: BMP280FilterCoefficient::Medium,
                 osrs_t: BMP280TemperatureOversampling::x1,
                 osrs_p: BMP280PressureOversampling::StandardResolution,

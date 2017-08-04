@@ -21,6 +21,7 @@ use std::thread;
 use std::time::Duration;
 use std::error::Error;
 use i2cdev::core::I2CDevice;
+#[cfg(any(target_os = "linux", target_os = "android"))]
 use i2cdev::linux::{LinuxI2CDevice,LinuxI2CError};
 use byteorder::{ByteOrder, BigEndian, LittleEndian};
 
@@ -73,8 +74,7 @@ pub enum L3GD20GyroscopeFS {
     dps2000 = 0b10
 }
 
-/// Use [data-sheet](http://www.st.com/content/ccc/resource/technical/document/datasheet/43/37/e3/06/b0/bf/48/bd/DM00036465.pdf/files/DM00036465.pdf/jcr:content/translations/en.DM00036465.pdf) to read in depth about settings
-/// Specifically Registers CTRL_REG1_G - CTRL_REG5_G
+/// Use the [data sheet](http://www.st.com/content/ccc/resource/technical/document/datasheet/43/37/e3/06/b0/bf/48/bd/DM00036465.pdf/files/DM00036465.pdf/jcr:content/translations/en.DM00036465.pdf) to read in depth about settings
 #[derive(Debug, Copy, Clone)]
 pub struct L3GD20GyroscopeSettings {
     /// Data measurement rate
@@ -96,6 +96,7 @@ pub struct L3GD20GyroscopeSettings {
 }
 
 /// Get Linux I2C device at L3GD20's default address
+#[cfg(any(target_os = "linux", target_os = "android"))]
 pub fn get_linux_l3gd20_i2c_device() -> Result<LinuxI2CDevice,LinuxI2CError> {
     let gyro = try!(LinuxI2CDevice::new("/dev/i2c-1", L3GD20_I2C_ADDR));
     Ok(gyro)
@@ -109,6 +110,7 @@ pub struct L3GD20<T: I2CDevice + Sized> {
 impl<T> L3GD20<T>
     where T: I2CDevice + Sized
 {
+    #[cfg(any(target_os = "linux", target_os = "android"))]
     pub fn new(mut gyro: T, mut gyro_settings: L3GD20GyroscopeSettings) -> Result<L3GD20<T>, T::Error> {
         assert!(try!(gyro.smbus_read_byte_data(L3GD20_WHO_AM_I)) == L3GD20_ID, "L3GD20 ID didn't match for device at given I2C address.");
         let mut ctrl_reg1: u8 = 0_u8 | ((gyro_settings.DR as u8) << 6) | ((gyro_settings.BW as u8) << 4);
@@ -155,6 +157,7 @@ impl<T> L3GD20<T>
         })
     }
 
+    #[cfg(any(target_os = "linux", target_os = "android"))]
     fn read_gyroscope_raw(&mut self) -> Result<(i16, i16, i16), T::Error> {
         let mut buf: [u8; 6] = [0;6];
         self.gyroscope.write(&[L3GD20_INCREMENT_BIT | L3GD20_OUT]);
@@ -171,7 +174,13 @@ impl<T> Gyroscope for L3GD20<T>
 {
     type Error = T::Error;
 
+    #[cfg(not(any(target_os = "linux", target_os = "android")))]
+    fn angular_rate_reading(&mut self) -> Result<Vec3, T::Error> {
+        Ok(Vec3::zeros())
+    }
+
     /// Returns reading in dps
+    #[cfg(any(target_os = "linux", target_os = "android"))]
     fn angular_rate_reading(&mut self) -> Result<Vec3, T::Error> {
         let (x_raw, y_raw, z_raw) = try!(self.read_gyroscope_raw());
         let angular_velocity = Vec3 {

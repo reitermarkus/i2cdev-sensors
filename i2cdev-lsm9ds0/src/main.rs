@@ -7,6 +7,12 @@ use i2csensors::{Accelerometer,Magnetometer,Gyroscope};
 use std::thread;
 use std::time::{Duration,Instant};
 
+#[cfg(not(any(target_os = "linux", target_os = "android")))]
+fn main() {
+
+}
+
+#[cfg(any(target_os = "linux", target_os = "android"))]
 fn main() {
     println!("LSM9DS0 Accelerometer Magnetometer Gyroscope.");
     let (gyro_dev,accel_dev) = get_default_lsm9ds0_linux_i2c_devices().unwrap();

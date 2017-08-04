@@ -20,6 +20,7 @@ use std::thread;
 use std::time::Duration;
 use std::error::Error;
 use i2cdev::core::I2CDevice;
+#[cfg(any(target_os = "linux", target_os = "android"))]
 use i2cdev::linux::{LinuxI2CDevice,LinuxI2CError};
 use byteorder::{ByteOrder, BigEndian, LittleEndian};
 
@@ -150,6 +151,7 @@ pub struct BMP280Settings {
     pub power_mode: BMP280PowerMode
 }
 
+#[cfg(any(target_os = "linux", target_os = "android"))]
 pub fn get_linux_bmp280_i2c_device() -> Result<LinuxI2CDevice, LinuxI2CError> {
     match LinuxI2CDevice::new("/dev/i2c-1", BMP280_I2C_ADDR) {
         Ok(device) => Ok(device),
@@ -167,6 +169,7 @@ pub struct BMP280<T: I2CDevice + Sized> {
 impl<T> BMP280<T>
     where T: I2CDevice + Sized
 {
+    #[cfg(any(target_os = "linux", target_os = "android"))]
     pub fn new(mut i2cdev: T, settings: BMP280Settings) -> Result<BMP280<T>, T::Error> {
         let id = try!(i2cdev.smbus_read_byte_data(0xD0));
         assert!(id == 0x58);
@@ -187,11 +190,13 @@ impl<T> BMP280<T>
         })
     }
 
+    #[cfg(any(target_os = "linux", target_os = "android"))]
     pub fn reset(&mut self) -> Result<(), T::Error> {
         try!(self.barometer.smbus_write_byte_data(0xE0, 0xB6));
         Ok(())
     }
 
+    #[cfg(any(target_os = "linux", target_os = "android"))]
     pub fn set_mode(&mut self, mode: BMP280PowerMode) -> Result<(), T::Error> {
         let mut ctrl_meas = try!(self.barometer.smbus_read_byte_data(0xF4));
         ctrl_meas = ctrl_meas & 0b11111100;
@@ -314,6 +319,7 @@ impl<T> BMP280<T>
         }
     }
 
+    #[cfg(any(target_os = "linux", target_os = "android"))]
     fn read_temp_raw(&mut self) -> Result<i32, T::Error> {
         let mut buf = [0_u8; 3];
         try!(self.barometer.write(&[BMP280_TEMP_MSB]));
@@ -324,6 +330,7 @@ impl<T> BMP280<T>
         Ok(raw_temp)
     }
 
+    #[cfg(any(target_os = "linux", target_os = "android"))]
     fn read_press_raw(&mut self) -> Result<i32, T::Error> {
         let mut buf = [0_u8; 3];
         try!(self.barometer.write(&[BMP280_PRESS_MSB]));
@@ -333,6 +340,7 @@ impl<T> BMP280<T>
         Ok(raw_press)
     }
 
+    #[doc(hidden)]
     pub fn test_calculate_real_pressure(&mut self) {
         self.coeff = BMP280CalibrationCoefficients {
             dig_t1: 27504,
@@ -381,6 +389,12 @@ impl<T> Thermometer for BMP280<T>
 {
     type Error = T::Error;
 
+    #[cfg(not(any(target_os = "linux", target_os = "android")))]
+    fn temperature_celsius(&mut self) -> Result<f32, T::Error> {
+        Ok(0.0)
+    }
+
+    #[cfg(any(target_os = "linux", target_os = "android"))]
     fn temperature_celsius(&mut self) -> Result<f32, T::Error> {
         match self.read_temp_raw() {
             Ok(adc_t) => Ok(self.compensate_temperature(adc_t)),
@@ -394,6 +408,12 @@ impl<T> Barometer for BMP280<T>
 {
     type Error = T::Error;
 
+    #[cfg(not(any(target_os = "linux", target_os = "android")))]
+    fn pressure_kpa(&mut self) -> Result<f32, T::Error> {
+        Ok(0.0)
+    }
+
+    #[cfg(any(target_os = "linux", target_os = "android"))]
     fn pressure_kpa(&mut self) -> Result<f32, T::Error> {
         self.temperature_celsius();
 

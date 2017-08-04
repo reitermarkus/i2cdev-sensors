@@ -22,6 +22,7 @@ use std::time::Duration;
 use std::error::Error;
 use i2cdev::core::I2CDevice;
 use byteorder::{ByteOrder, LittleEndian};
+#[cfg(any(target_os = "linux", target_os = "android"))]
 use i2cdev::linux::{LinuxI2CDevice,LinuxI2CError};
 
 pub const LSM303D_I2C_ADDR: u16 = 0x1E;
@@ -96,7 +97,7 @@ pub enum LSM303DMagnetometerFS {
     gauss12 = 0b11
 }
 
-/// [Data sheet](http://www.st.com/content/ccc/resource/technical/document/datasheet/1c/9e/71/05/4e/b7/4d/d1/DM00057547.pdf/files/DM00057547.pdf/jcr:content/translations/en.DM00057547.pdf)
+/// Use the [data sheet](http://www.st.com/content/ccc/resource/technical/document/datasheet/1c/9e/71/05/4e/b7/4d/d1/DM00057547.pdf/files/DM00057547.pdf/jcr:content/translations/en.DM00057547.pdf) to read in depth about settings
 #[derive(Debug, Copy, Clone)]
 pub struct LSM303DSettings {
     /// Continuously update output registers or wait until read
@@ -123,6 +124,7 @@ pub struct LSM303DSettings {
 }
 
 /// Get Linux I2C device at L3GD20's default address
+#[cfg(any(target_os = "linux", target_os = "android"))]
 pub fn get_linux_lsm303d_i2c_device() -> Result<LinuxI2CDevice,LinuxI2CError> {
     let device = try!(LinuxI2CDevice::new("/dev/i2c-1", LSM303D_I2C_ADDR));
     Ok(device)
@@ -137,6 +139,7 @@ pub struct LSM303D<T: I2CDevice + Sized> {
 impl<T> LSM303D<T>
     where T: I2CDevice + Sized
 {
+    #[cfg(any(target_os = "linux", target_os = "android"))]
     pub fn new(mut accel_mag: T, mut accel_mag_settings: LSM303DSettings) -> Result<LSM303D<T>, T::Error> {
         assert!(try!(accel_mag.smbus_read_byte_data(LSM303D_WHO_AM_I)) == LSM303D_ID, "LSM303D ID didn't match for device at given I2C address.");
 
@@ -207,6 +210,7 @@ impl<T> LSM303D<T>
         })
     }
 
+    #[cfg(any(target_os = "linux", target_os = "android"))]
     fn magnetometer_read_raw(&mut self) -> Result<(i16, i16, i16), T::Error> {
         let mut buf: [u8; 6] = [0;6];
         try!(self.accelerometer_magnetometer.write(&[LSM303D_INCREMENT_BIT | LSM303D_OUT_MAG]));
@@ -217,6 +221,7 @@ impl<T> LSM303D<T>
         Ok((x_raw, y_raw, z_raw))
     }
 
+    #[cfg(any(target_os = "linux", target_os = "android"))]
     fn accelerometer_read_raw(&mut self) -> Result<(i16, i16, i16), T::Error> {
         let mut buf: [u8; 6] = [0;6];
         try!(self.accelerometer_magnetometer.write(&[LSM303D_INCREMENT_BIT | LSM303D_OUT_ACC]));
@@ -233,7 +238,13 @@ impl<T> Magnetometer for LSM303D<T>
 {
     type Error = T::Error;
 
+    #[cfg(not(any(target_os = "linux", target_os = "android")))]
+    fn magnetic_reading(&mut self) -> Result<Vec3, T::Error> {
+        Ok(Vec3::zeros())
+    }
+
     /// Returns reading in gauss
+    #[cfg(any(target_os = "linux", target_os = "android"))]
     fn magnetic_reading(&mut self) -> Result<Vec3, T::Error> {
         let (x_raw, y_raw, z_raw) = try!(self.magnetometer_read_raw());
         Ok(Vec3 {
@@ -249,7 +260,13 @@ impl<T> Accelerometer for LSM303D<T>
 {
     type Error = T::Error;
 
+    #[cfg(not(any(target_os = "linux", target_os = "android")))]
+    fn acceleration_reading(&mut self) -> Result<Vec3, T::Error> {
+        Ok(Vec3::zeros())
+    }
+
     /// Returns acceleration in gs
+    #[cfg(any(target_os = "linux", target_os = "android"))]
     fn acceleration_reading(&mut self) -> Result<Vec3, T::Error> {
         let (x_raw, y_raw, z_raw) = try!(self.accelerometer_read_raw());
         Ok(Vec3 {

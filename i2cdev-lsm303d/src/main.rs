@@ -6,6 +6,12 @@ use i2csensors::{Magnetometer,Accelerometer};
 use std::thread;
 use std::time::Duration;
 
+#[cfg(not(any(target_os = "linux", target_os = "android")))]
+fn main() {
+
+}
+
+#[cfg(any(target_os = "linux", target_os = "android"))]
 fn main() {
     let settings = LSM303DSettings {
         continuous_update: true,
