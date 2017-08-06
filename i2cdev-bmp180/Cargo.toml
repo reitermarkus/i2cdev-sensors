@@ -2,6 +2,8 @@
 name = "i2cdev-bmp180"
 version = "0.1.0"
 authors = ["martindeegan <mddeegan@gmail.com>"]
+description = "BMP180 barometer, thermometer I2C driver."
+license = "MIT/Apache-2.0"
 
 [dependencies]
 i2cdev = "0.3.1"

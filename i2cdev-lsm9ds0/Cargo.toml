@@ -2,6 +2,8 @@
 name = "i2cdev-lsm9ds0"
 version = "0.1.0"
 authors = ["martindeegan <mddeegan@gmail.com>"]
+description = "LSM9DS0 gyroscope, accelerometer, magnetometer I2C driver"
+license = "MIT/Apache-2.0"
 
 [lib]
 name = "i2cdev_lsm9ds0"
