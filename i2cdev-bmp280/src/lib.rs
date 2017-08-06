@@ -324,7 +324,6 @@ impl<T> BMP280<T>
         let mut buf = [0_u8; 3];
         try!(self.barometer.write(&[BMP280_TEMP_MSB]));
         try!(self.barometer.read(&mut buf));
-        let temp = BigEndian::read_i24(&buf) << 4;
         let mut raw_temp: i32 = ((buf[0] as i32) << 12) + ((buf[1] as i32) << 4) + ((buf[2] as i32) >> 4);
 
         Ok(raw_temp)
