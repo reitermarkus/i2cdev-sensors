@@ -186,7 +186,7 @@ impl<T> Gyroscope for L3GD20<T>
         let angular_velocity = Vec3 {
             x: (x_raw as f32) * self.g_gain,
             y: (y_raw as f32) * self.g_gain,
-            z: (y_raw as f32) * self.g_gain
+            z: (z_raw as f32) * self.g_gain
         };
         Ok(angular_velocity)
     }
