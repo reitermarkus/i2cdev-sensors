@@ -15,11 +15,12 @@ fn main() {
 fn main() {
     let settings = LSM303DSettings {
         continuous_update: true,
-        accelerometer_data_rate: LSM303DAccelerometerUpdateRate::Hz100,
+        accelerometer_data_rate: LSM303DAccelerometerUpdateRate::Hz400,
+        accelerometer_anti_alias_filter_bandwidth: LSM303DAccelerometerFilterBandwidth::Hz194,
         azen: true,
         ayen: true,
         axen: true,
-        accelerometer_sensitivity: LSM303DAccelerometerFS::g4,
+        accelerometer_sensitivity: LSM303DAccelerometerFS::g2,
         magnetometer_resolution: LSM303DMagnetometerResolution::Low,
         magnetometer_data_rate: LSM303DMagnetometerUpdateRate::Hz100,
         magnetometer_low_power_mode: false,
@@ -32,11 +33,11 @@ fn main() {
     let mut lsm303d_accel_mag = LSM303D::new(i2cdev, settings).unwrap();
 
     lsm303d_accel_mag.magnetic_reading().unwrap();
-    for i in 0..400 {
+    loop {
         let acceleration = lsm303d_accel_mag.acceleration_reading().unwrap();
         let magnetism = lsm303d_accel_mag.magnetic_reading().unwrap();
-        println!("acceleration: x: {}, y: {}, z: {}", format!("{:.*}", 2, acceleration.x), format!("{:.*}", 2, acceleration.y), format!("{:.*}", 2, acceleration.z));
-        println!("magnetism: x: {}, y: {}, z: {}", format!("{:.*}", 2, magnetism.x), format!("{:.*}", 2, magnetism.y), format!("{:.*}", 2, magnetism.z));
-        thread::sleep(Duration::from_millis(50));
+        println!("acceleration: x: {}, y: {}, z: {}, total: {}", format!("{:.*}", 2, acceleration.x), format!("{:.*}", 2, acceleration.y), format!("{:.*}", 2, acceleration.z), format!("{:.*}", 2, (acceleration.x.powi(2) + acceleration.y.powi(2) + acceleration.z.powi(2)).sqrt()));
+        println!("magnetism: x: {}, y: {}, z: {}\r", format!("{:.*}", 2, magnetism.x), format!("{:.*}", 2, magnetism.y), format!("{:.*}", 2, magnetism.z));
+        thread::sleep(Duration::from_millis(20));
     }
 }

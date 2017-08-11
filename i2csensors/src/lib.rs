@@ -7,6 +7,7 @@
 // except according to those terms.
 
 use std::error::Error;
+use std::ops::{Add, Sub, Mul, Div};
 
 #[derive(Debug)]
 pub struct Vec3 {
@@ -18,6 +19,54 @@ pub struct Vec3 {
 impl Vec3 {
     pub fn zeros() -> Vec3 {
         Vec3 { x: 0.0, y: 0.0, z: 0.0 }
+    }
+}
+
+impl Add for Vec3 {
+    type Output = Self;
+
+    fn add(self, other: Vec3) -> Self {
+        Vec3 {
+            x: self.x + other.x,
+            y: self.y + other.y,
+            z: self.z + other.z
+        }
+    }
+}
+
+impl Sub for Vec3 {
+    type Output = Self;
+
+    fn sub(self, other: Vec3) -> Self {
+        Vec3 {
+            x: self.x - other.x,
+            y: self.y - other.y,
+            z: self.z - other.z
+        }
+    }
+}
+
+impl Mul<f32> for Vec3 {
+    type Output = Self;
+
+    fn mul(self, other: f32) -> Self {
+        Vec3 {
+            x: self.x * other,
+            y: self.y * other,
+            z: self.z * other
+        }
+    }
+}
+
+impl Div<f32> for Vec3 {
+    type Output = Self;
+
+    fn div(self, other: f32) -> Self {
+        Vec3 {
+            x: self.x / other,
+            y: self.y / other,
+            z: self.z / other
+        }
     }
 }
 

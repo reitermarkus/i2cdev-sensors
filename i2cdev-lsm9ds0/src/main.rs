@@ -6,6 +6,8 @@ use i2cdev_lsm9ds0::*;
 use i2csensors::{Accelerometer,Magnetometer,Gyroscope};
 use std::thread;
 use std::time::{Duration,Instant};
+use std::io::stdin;
+use std::string::String;
 
 #[cfg(not(any(target_os = "linux", target_os = "android")))]
 fn main() {
@@ -31,6 +33,7 @@ fn main() {
     let accel_mag_settings = LSM9DS0AccelerometerMagnetometerSettings {
         continuous_update: true,
         accelerometer_data_rate: LSM9DS0AccelerometerUpdateRate::Hz100,
+        accelerometer_anti_alias_filter_bandwidth: LSM9DS0AccelerometerFilterBandwidth::Hz50,
         azen: true,
         ayen: true,
         axen: true,
@@ -47,19 +50,61 @@ fn main() {
     // A simple complementary filter
     let mut last = Instant::now();
     let (mut x_sum, mut y_sum, mut z_sum): (f32, f32, f32) = (0.0, 0.0, 0.0);
+    {
+//        let mut linear_acc = lsm9ds0.acceleration_reading().unwrap();
+//        let angle_acc_x = linear_acc.y.atan2(linear_acc.z) * 180.0 / 3.14;
+//        let angle_acc_y = linear_acc.x.atan2(linear_acc.z) * -180.0 / 3.14;
+//        x_sum += angle_acc_x;
+//        y_sum += angle_acc_y;
+    }
+
+    println!("Place sensors on a level surface and press enter");
+    let mut input = String::new();
+    stdin().read_line(&mut input).expect("Error");
+
+    let (mut acc_x_calib, mut acc_y_calib, mut acc_z_calib) = (0.0, 0.0, 0.0);
+    let (mut gyro_x_calib, mut gyro_y_calib, mut gyro_z_calib) = (0.0, 0.0, 0.0);
+    {
+        for i in 0..50 {
+            let mut linear_acc = lsm9ds0.acceleration_reading().unwrap();
+            let dps = lsm9ds0.angular_rate_reading().unwrap();
+            acc_x_calib += linear_acc.x;
+            acc_y_calib += linear_acc.y;
+            acc_z_calib += linear_acc.z;
+
+            gyro_x_calib += dps.x;
+            gyro_y_calib += dps.y;
+            gyro_z_calib += dps.z;
+            thread::sleep(Duration::from_millis(50));
+        }
+
+        acc_x_calib /= 50.0;
+        acc_y_calib /= 50.0;
+        acc_z_calib /= 50.0;
+
+        gyro_x_calib /= 50.0;
+        gyro_y_calib /= 50.0;
+        gyro_z_calib /= 50.0;
+    }
+
     loop {
 //        println!("Starting filter.");
         let dt: f32 = last.elapsed().subsec_nanos() as f32 / 1000000000.0;
-        let dps = lsm9ds0.angular_rate_reading().unwrap();
+        let mut dps = lsm9ds0.angular_rate_reading().unwrap();
+        dps.x -= gyro_x_calib;
+        dps.y -= gyro_y_calib;
         let (dx, dy, dz) = (dps.x * dt, dps.y * dt, dps.z * dt);
         x_sum += dx; y_sum += dy; z_sum += dz;
 //        println!("sum: x: {}, y: {}, z: {}", x_sum, y_sum, z_sum);
 
         let mut linear_acc = lsm9ds0.acceleration_reading().unwrap();
-//        println!("linear acc: x: {}, y: {}, z: {}", linear_acc.x, linear_acc.y, linear_acc.z);
+        linear_acc.x -= acc_x_calib;
+        linear_acc.y -= acc_y_calib;
         let angle_acc_x = linear_acc.y.atan2(linear_acc.z) * 180.0 / 3.14;
-        let angle_acc_y = -1.0 * linear_acc.x.atan2(linear_acc.z) * 180.0 / 3.14;
-//        println!("Acc angle: x: {}, y: {}", angle_acc_x, angle_acc_y);
+        let angle_acc_y = linear_acc.x.atan2(linear_acc.z) * -180.0 / 3.14;
+        //println!("linear acc: x: {}, y: {}, z: {}", format!("{:.*}", 2, linear_acc.x), format!("{:.*}", 2, linear_acc.y), format!("{:.*}", 2, linear_acc.z));
+        //println!("Angular rate: x: {}, y: {}", format!("{:.*}", 2, dps.x), format!("{:.*}", 2, dps.y));
+//        println!("Acc angle: x: {}, y: {}", format!("{:.*}", 2, angle_acc_x), format!("{:.*}", 2, angle_acc_y));
 
         let alpha = 0.02;
 

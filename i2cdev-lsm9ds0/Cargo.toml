@@ -1,6 +1,6 @@
 [package]
 name = "i2cdev-lsm9ds0"
-version = "0.1.0"
+version = "0.1.1"
 authors = ["martindeegan <mddeegan@gmail.com>"]
 description = "LSM9DS0 gyroscope, accelerometer, magnetometer I2C driver"
 license = "MIT/Apache-2.0"
@@ -16,4 +16,4 @@ path = "src/main.rs"
 [dependencies]
 i2cdev = "0.3.1"
 byteorder = "1"
-i2csensors = "0.1.0"
+i2csensors = "0.1.*"

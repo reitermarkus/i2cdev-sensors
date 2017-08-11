@@ -56,6 +56,14 @@ pub enum LSM303DAccelerometerUpdateRate {
 }
 
 #[derive(Debug, Copy, Clone)]
+pub enum LSM303DAccelerometerFilterBandwidth {
+    Hz773 = 0b00,
+    Hz194 = 0b01,
+    Hz362 = 0b10,
+    Hz50 = 0b11
+}
+
+#[derive(Debug, Copy, Clone)]
 pub enum LSM303DAccelerometerFS {
     g2 = 0b000,
     g4 = 0b001,
@@ -105,6 +113,7 @@ pub struct LSM303DSettings {
     //Accelerometer
     /// Frequency that accelerometer measurements are made
     pub accelerometer_data_rate: LSM303DAccelerometerUpdateRate,
+    pub accelerometer_anti_alias_filter_bandwidth: LSM303DAccelerometerFilterBandwidth,
     /// Enable accelerometer z axis
     pub azen: bool,
     /// Enable accelerometer y axis
@@ -152,7 +161,7 @@ impl<T> LSM303D<T>
         if accel_mag_settings.azen { ctrl_reg1 |= 0b100 };
         try!(accel_mag.smbus_write_byte_data(LSM303D_CTRL1, ctrl_reg1));
 
-        let mut ctrl_reg2: u8 = 0_u8 | ((accel_mag_settings.accelerometer_sensitivity as u8) << 3);
+        let mut ctrl_reg2: u8 = 0_u8 | ((accel_mag_settings.accelerometer_sensitivity as u8) << 3) | ((accel_mag_settings.accelerometer_anti_alias_filter_bandwidth as u8) << 6);
         try!(accel_mag.smbus_write_byte_data(LSM303D_CTRL2, ctrl_reg2));
 
         let mut ctrl_reg5: u8 = 0_u8 | ((accel_mag_settings.magnetometer_resolution as u8) << 5) | ((accel_mag_settings.magnetometer_data_rate as u8) << 2); //24
