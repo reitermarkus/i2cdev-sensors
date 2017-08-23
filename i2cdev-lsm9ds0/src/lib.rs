@@ -83,6 +83,29 @@ pub enum LSM9DS0GyroscopeFS {
     dps2000 = 0b10
 }
 
+#[derive(Debug, Copy, Clone)]
+pub enum LSM9DS0GyroscopeHighPassFilterMode {
+    NormalModeHPRESETFILTER = 0b00,
+    ReferenceSignalForFiltering = 0b01,
+    NormalMode = 0b10,
+    AutoresetOnInterruptEvent = 0b11
+}
+
+#[derive(Debug, Copy, Clone)]
+pub enum LSM9DS0HighPassFilterCutOffConfig {
+    HPCF_0 = 0b0000,
+    HPCF_1 = 0b0001,
+    HPCF_2 = 0b0010,
+    HPCF_3 = 0b0011,
+    HPCF_4 = 0b0100,
+    HPCF_5 = 0b0101,
+    HPCF_6 = 0b0110,
+    HPCF_7 = 0b0111,
+    HPCF_8 = 0b1000,
+    HPCF_9 = 0b1001,
+}
+
+
 /// Use the [data sheet](http://www.st.com/content/ccc/resource/technical/document/datasheet/43/37/e3/06/b0/bf/48/bd/DM00036465.pdf/files/DM00036465.pdf/jcr:content/translations/en.DM00036465.pdf) to read in depth about settings
 #[derive(Debug, Copy, Clone)]
 pub struct LSM9DS0GyroscopeSettings {
@@ -101,7 +124,10 @@ pub struct LSM9DS0GyroscopeSettings {
     /// Range of measurements. Lower range means more precision.
     pub sensitivity: LSM9DS0GyroscopeFS,
     /// Set to false if you do not want to update the buffer unless it has been read
-    pub continuous_update: bool
+    pub continuous_update: bool,
+    pub high_pass_filter_enabled: bool,
+    pub high_pass_filter_mode: Option<LSM9DS0GyroscopeHighPassFilterMode>,
+    pub high_pass_filter_configuration: Option<LSM9DS0HighPassFilterCutOffConfig>
 }
 
 // Accelerometer/Magnetometer
@@ -207,6 +233,7 @@ pub fn get_default_lsm9ds0_linux_i2c_devices() -> Result<(LinuxI2CDevice,LinuxI2
     Ok((gyro,accel_mag))
 }
 
+#[derive(Copy,Clone)]
 pub struct LSM9DS0<T: I2CDevice + Sized> {
     pub accelerometer_magnetometer: T,
     pub gyroscope: T,
@@ -247,11 +274,32 @@ impl<T> LSM9DS0<T>
         }
         try!(gyro.smbus_write_byte_data(LSM9DS0_CTRL_REG1, ctrl_reg1));
 
+        let mut ctrl_reg2: u8 = 0_u8;
+        match gyro_settings.high_pass_filter_mode {
+            Some(mode) => {
+                ctrl_reg2 = ctrl_reg2 | ((mode as u8) << 4);
+            },
+            None => {}
+        }
+        match gyro_settings.high_pass_filter_configuration {
+            Some(config) => {
+                ctrl_reg2 = ctrl_reg2 | (config as u8);
+            },
+            None => {}
+        }
+        try!(gyro.smbus_write_byte_data(LSM9DS0_CTRL_REG2, ctrl_reg2));
+
         let mut ctrl_reg4: u8 = 0_u8 | ((gyro_settings.sensitivity as u8) << 4);
         if !gyro_settings.continuous_update {
             ctrl_reg4 |= 0b10000000;
         }
         try!(gyro.smbus_write_byte_data(LSM9DS0_CTRL_REG4, ctrl_reg4));
+
+        let mut ctrl_reg5: u8 = 0_u8;
+        if gyro_settings.high_pass_filter_enabled {
+            ctrl_reg5 = 0b00010000;
+        }
+        try!(gyro.smbus_write_byte_data(LSM9DS0_CTRL_REG5, ctrl_reg5));
 
         // Calculate gain
         let mut g_gain: f32;
@@ -358,7 +406,7 @@ impl<T> LSM9DS0<T>
         try!(self.accelerometer_magnetometer.read(&mut buf));
         let x_raw = LittleEndian::read_i16(&buf[0..2]);
         let y_raw = LittleEndian::read_i16(&buf[2..4]);
-        let z_raw = LittleEndian::read_i16(&buf[6..6]);
+        let z_raw = LittleEndian::read_i16(&buf[4..6]);
         Ok((x_raw, y_raw, z_raw))
     }
 

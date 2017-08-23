@@ -36,12 +36,14 @@ const BMP280_TEMP_XLSB: u8 = 0xFC;
 
 /// Algorithm to process measurements.
 /// Float is significantly more expensive.
+#[derive(Copy,Clone)]
 pub enum BMP280CompensationAlgorithm{
     B32,
     B64,
     Float
 }
 
+#[derive(Copy,Clone)]
 struct BMP280CalibrationCoefficients {
     pub dig_t1: u16,
     pub dig_t2: i16,
@@ -83,6 +85,7 @@ impl BMP280CalibrationCoefficients {
     }
 }
 
+#[derive(Copy,Clone)]
 pub enum BMP280PowerMode {
     SleepMode = 0b00000000,
     NormalMode = 0b00000011,
@@ -94,6 +97,7 @@ pub enum BMP280PowerMode {
 /// Standard resolution: ×4 18 bit / 0.66 Pa
 /// High resolution: ×8 19 bit / 0.33 Pa
 /// Ultra high resolution: ×16 20 bit / 0.16 Pa
+#[derive(Copy,Clone)]
 pub enum BMP280PressureOversampling {
     Off = 0b00000000,
     UltraLowPower = 0b00000100,
@@ -112,6 +116,7 @@ pub enum BMP280PressureOversampling {
 /// Recommended:
 /// 1x for all UltraLowPower->HighResolution
 /// 2x for UltraHighResolution
+#[derive(Copy,Clone)]
 pub enum BMP280TemperatureOversampling {
     Off,
     x1 = 0b00100000,
@@ -122,6 +127,7 @@ pub enum BMP280TemperatureOversampling {
 }
 
 ///Off = 1, Low = 2, Medium = 4, High = 8, UltraHigh = 16
+#[derive(Copy,Clone)]
 pub enum BMP280FilterCoefficient {
     Off = 0b00000100,
     Low = 0b00001000,
@@ -130,6 +136,7 @@ pub enum BMP280FilterCoefficient {
     UltraHigh = 0b00010100
 }
 
+#[derive(Copy,Clone)]
 pub enum BMP280Timing {
     ms0_5 = 0b00000000,
     ms62_5 = 0b00100000,
@@ -142,6 +149,7 @@ pub enum BMP280Timing {
 }
 
 /// [data sheet](https://ae-bst.resource.bosch.com/media/_tech/media/datasheets/BST-BMP280-DS001-18.pdf)
+#[derive(Copy,Clone)]
 pub struct BMP280Settings {
     pub compensation: BMP280CompensationAlgorithm,
     pub t_sb: BMP280Timing,
@@ -159,12 +167,15 @@ pub fn get_linux_bmp280_i2c_device() -> Result<LinuxI2CDevice, LinuxI2CError> {
     }
 }
 
+#[derive(Copy,Clone)]
 pub struct BMP280<T: I2CDevice + Sized> {
     pub barometer: T,
     coeff: BMP280CalibrationCoefficients,
     t_fine: i32,
     algorithm: BMP280CompensationAlgorithm
 }
+
+//unsafe impl<T> Send for BMP280<T> where T: I2CDevice + Sized {}
 
 impl<T> BMP280<T>
     where T: I2CDevice + Sized

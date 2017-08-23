@@ -74,6 +74,28 @@ pub enum L3GD20GyroscopeFS {
     dps2000 = 0b10
 }
 
+#[derive(Debug, Copy, Clone)]
+pub enum L3GD20GyroscopeHighPassFilterMode {
+    NormalModeHPRESETFILTER = 0b00,
+    ReferenceSignalForFiltering = 0b01,
+    NormalMode = 0b10,
+    AutoresetOnInterruptEvent = 0b11
+}
+
+#[derive(Debug, Copy, Clone)]
+pub enum L3GD20HighPassFilterCutOffConfig {
+    HPCF_0 = 0b0000,
+    HPCF_1 = 0b0001,
+    HPCF_2 = 0b0010,
+    HPCF_3 = 0b0011,
+    HPCF_4 = 0b0100,
+    HPCF_5 = 0b0101,
+    HPCF_6 = 0b0110,
+    HPCF_7 = 0b0111,
+    HPCF_8 = 0b1000,
+    HPCF_9 = 0b1001,
+}
+
 /// Use the [data sheet](http://www.st.com/content/ccc/resource/technical/document/datasheet/43/37/e3/06/b0/bf/48/bd/DM00036465.pdf/files/DM00036465.pdf/jcr:content/translations/en.DM00036465.pdf) to read in depth about settings
 #[derive(Debug, Copy, Clone)]
 pub struct L3GD20GyroscopeSettings {
@@ -92,7 +114,10 @@ pub struct L3GD20GyroscopeSettings {
     /// Range of measurements. Lower range means more precision.
     pub sensitivity: L3GD20GyroscopeFS,
     /// Set to false if you do not want to update the buffer unless it has been read
-    pub continuous_update: bool
+    pub continuous_update: bool,
+    pub high_pass_filter_enabled: bool,
+    pub high_pass_filter_mode: Option<L3GD20GyroscopeHighPassFilterMode>,
+    pub high_pass_filter_configuration: Option<L3GD20HighPassFilterCutOffConfig>
 }
 
 /// Get Linux I2C device at L3GD20's default address
@@ -130,11 +155,32 @@ impl<T> L3GD20<T>
         }
         try!(gyro.smbus_write_byte_data(L3GD20_CTRL_REG1, ctrl_reg1));
 
+        let mut ctrl_reg2: u8 = 0_u8;
+        match gyro_settings.high_pass_filter_mode {
+            Some(mode) => {
+                ctrl_reg2 = ctrl_reg2 | ((mode as u8) << 4);
+            },
+            None => {}
+        }
+        match gyro_settings.high_pass_filter_configuration {
+            Some(config) => {
+                ctrl_reg2 = ctrl_reg2 | (config as u8);
+            },
+            None => {}
+        }
+        try!(gyro.smbus_write_byte_data(L3GD20_CTRL_REG2, ctrl_reg2));
+
         let mut ctrl_reg4: u8 = 0_u8 | ((gyro_settings.sensitivity as u8) << 4);
         if !gyro_settings.continuous_update {
             ctrl_reg4 |= 0b10000000;
         }
         try!(gyro.smbus_write_byte_data(L3GD20_CTRL_REG4, ctrl_reg4));
+
+        let mut ctrl_reg5: u8 = 0_u8;
+        if gyro_settings.high_pass_filter_enabled {
+            ctrl_reg5 = 0b00010000;
+        }
+        try!(gyro.smbus_write_byte_data(L3GD20_CTRL_REG5, ctrl_reg5));
 
         // Calculate gain
         let mut g_gain: f32;

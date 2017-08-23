@@ -9,7 +9,7 @@
 use std::error::Error;
 use std::ops::{Add, Sub, Mul, Div};
 
-#[derive(Debug)]
+#[derive(Debug, Copy, Clone)]
 pub struct Vec3 {
     pub x: f32,
     pub y: f32,
