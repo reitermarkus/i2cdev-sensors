@@ -1,9 +1,8 @@
 [package]
 name = "i2csensors"
-version = "0.1.1"
+version = "0.1.2"
 authors = ["martindeegan <mddeegan@gmail.com>"]
 description = "Traits for I2C sensors."
 license = "MIT/Apache-2.0"
 
 [dependencies]
-
