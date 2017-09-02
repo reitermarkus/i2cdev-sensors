@@ -7,7 +7,7 @@
 // except according to those terms.
 
 // This module is implementing userland library to interact with
-// ST LSM9DS0 Accelerometer, Magnetometer, Gyroscope i2c sensors.
+// ST L3GD20 and L3GD20H Gyroscope i2c sensors.
 
 #![allow(dead_code)]
 
@@ -28,6 +28,7 @@ use byteorder::{ByteOrder, BigEndian, LittleEndian};
 // Addresses
 
 pub const L3GD20_I2C_ADDR: u16 = 0x6A;
+pub const L3GD20H_I2C_ADDR: u16 = 0x6B;
 
 const L3GD20_CTRL_REG1: u8 = 0x20;
 const L3GD20_CTRL_REG2: u8 = 0x21;
@@ -39,8 +40,9 @@ const L3GD20_INCREMENT_BIT: u8 = 0x80;
 
 const L3GD20_OUT: u8 = 0x28;
 
-const L3GD20_WHO_AM_I: u8 = 0x0F;
-const L3GD20_ID: u8 = 0b11010100;
+const L3GD20_WHO_AM_I_REGISTER: u8 = 0x0F;
+const L3GD20H_WHO_AM_I: u8 = 0b11010111;
+const L3GD20_WHO_AM_I: u8 = 0b11010100;
 
 #[derive(Debug, Copy, Clone)]
 pub enum L3GD20PowerMode {
@@ -127,6 +129,11 @@ pub fn get_linux_l3gd20_i2c_device() -> Result<LinuxI2CDevice,LinuxI2CError> {
     Ok(gyro)
 }
 
+pub fn get_linux_l3gd20h_i2c_device() -> Result<LinuxI2CDevice,LinuxI2CError> {
+    let gyro = try!(LinuxI2CDevice::new("/dev/i2c-1", L3GD20H_I2C_ADDR));
+    Ok(gyro)
+}
+
 pub struct L3GD20<T: I2CDevice + Sized> {
     pub gyroscope: T,
     g_gain: f32,
@@ -137,7 +144,8 @@ impl<T> L3GD20<T>
 {
     #[cfg(any(target_os = "linux", target_os = "android"))]
     pub fn new(mut gyro: T, mut gyro_settings: L3GD20GyroscopeSettings) -> Result<L3GD20<T>, T::Error> {
-        assert!(try!(gyro.smbus_read_byte_data(L3GD20_WHO_AM_I)) == L3GD20_ID, "L3GD20 ID didn't match for device at given I2C address.");
+        let who_am_i = try!(gyro.smbus_read_byte_data(L3GD20_WHO_AM_I_REGISTER));
+        assert!(who_am_i == L3GD20_WHO_AM_I || who_am_i == L3GD20H_WHO_AM_I, "L3GD20 ID didn't match for device at given I2C address.");
         let mut ctrl_reg1: u8 = 0_u8 | ((gyro_settings.DR as u8) << 6) | ((gyro_settings.BW as u8) << 4);
         match gyro_settings.power_mode {
             L3GD20PowerMode::PowerDown => {
