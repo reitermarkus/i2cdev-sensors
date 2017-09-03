@@ -7,7 +7,7 @@
 // except according to those terms.
 
 // This module is implementing userland library to interact with
-// Bosh BMP280 i2c temperature and pressure sensor.
+// lsm303d accelerometer.
 
 #![allow(dead_code)]
 
