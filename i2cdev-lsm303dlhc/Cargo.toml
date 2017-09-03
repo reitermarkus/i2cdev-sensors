@@ -1,6 +1,6 @@
 [package]
 name = "i2cdev-lsm303dlhc"
-version = "0.1.1"
+version = "1.0.0"
 authors = ["martindeegan <mddeegan@gmail.com>", "Thomas Deegan <tadeegan@gmail.com>"]
 description = "LSM303DLHC accelerometer, magnetometer I2C driver"
 license = "MIT/Apache-2.0"
