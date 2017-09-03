@@ -1,16 +1,16 @@
 [package]
-name = "i2cdev-lsm303d"
+name = "i2cdev-lsm303dlhc"
 version = "0.1.1"
-authors = ["martindeegan <mddeegan@gmail.com>"]
-description = "LSM303D accelerometer, magnetometer I2C driver"
+authors = ["martindeegan <mddeegan@gmail.com>", "Thomas Deegan <tadeegan@gmail.com>"]
+description = "LSM303DLHC accelerometer, magnetometer I2C driver"
 license = "MIT/Apache-2.0"
 
 [lib]
-name = "i2cdev_lsm303d"
+name = "i2cdev_lsm303dlhc"
 path =  "src/lib.rs"
 
 [[bin]]
-name = "lsm303d_bin"
+name = "lsm303dlhc_bin"
 path = "src/main.rs"
 
 [dependencies]
