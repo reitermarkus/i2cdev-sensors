@@ -1,7 +1,7 @@
-extern crate i2cdev_lsm303d;
+extern crate i2cdev_lsm303dlhc;
 extern crate i2csensors;
 
-use i2cdev_lsm303d::*;
+use i2cdev_lsm303dlhc::*;
 use i2csensors::{Magnetometer,Accelerometer};
 use std::thread;
 use std::time::Duration;
@@ -13,24 +13,25 @@ fn main() {
 
 #[cfg(any(target_os = "linux", target_os = "android"))]
 fn main() {
-    let settings = LSM303DSettings {
+    let settings = LSM303DLHCSettings {
         continuous_update: true,
-        accelerometer_data_rate: LSM303DAccelerometerUpdateRate::Hz400,
-        accelerometer_anti_alias_filter_bandwidth: LSM303DAccelerometerFilterBandwidth::Hz194,
+        low_power: false,
+        accelerometer_data_rate: LSM303DLHCAccelerometerUpdateRate::Hz400,
+        accelerometer_anti_alias_filter_bandwidth: LSM303DLHCAccelerometerFilterBandwidth::Hz194,
         azen: true,
         ayen: true,
         axen: true,
-        accelerometer_sensitivity: LSM303DAccelerometerFS::g2,
-        magnetometer_resolution: LSM303DMagnetometerResolution::Low,
-        magnetometer_data_rate: LSM303DMagnetometerUpdateRate::Hz100,
+        accelerometer_sensitivity: LSM303DLHCAccelerometerFS::g2,
+        magnetometer_resolution: LSM303DLHCMagnetometerResolution::Low,
+        magnetometer_data_rate: LSM303DLHCMagnetometerUpdateRate::Hz75,
         magnetometer_low_power_mode: false,
-        magnetometer_mode: LSM303DMagnetometerMode::ContinuousConversion,
-        magnetometer_sensitivity: LSM303DMagnetometerFS::gauss2
+        magnetometer_mode: LSM303DLHCMagnetometerMode::ContinuousConversion,
+        magnetometer_sensitivity: LSM303DLHCMagnetometerFS::gauss2_5
     };
 
-    let mut i2cdev = get_linux_lsm303d_i2c_device().unwrap();
+    let (mut acc, mut mag) = get_linux_lsm303d_i2c_device().unwrap();
 
-    let mut lsm303d_accel_mag = LSM303D::new(i2cdev, settings).unwrap();
+    let mut lsm303d_accel_mag = LSM303DLHC::new(acc, mag, settings).unwrap();
 
     lsm303d_accel_mag.magnetic_reading().unwrap();
     loop {
