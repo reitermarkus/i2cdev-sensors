@@ -2,7 +2,8 @@
 name = "i2cdev-l3gd20"
 version = "0.1.2"
 authors = ["martindeegan <mddeegan@gmail.com>"]
-description = "L3GD20 gyroscope I2C driver."
+repository = "https://github.com/martindeegan/i2cdev-sensors"
+description = "I2C driver for the L3GD20 gyroscope."
 license = "MIT/Apache-2.0"
 
 [lib]
