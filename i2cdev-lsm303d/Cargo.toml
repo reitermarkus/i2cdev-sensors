@@ -1,6 +1,6 @@
 [package]
 name = "i2cdev-lsm303d"
-version = "0.1.1"
+version = "0.1.2"
 authors = ["martindeegan <mddeegan@gmail.com>"]
 description = "I2C driver for the LSM303D accelerometer, magnetometer."
 repository = "https://github.com/martindeegan/i2cdev-sensors"
