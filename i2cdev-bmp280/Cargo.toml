@@ -1,6 +1,6 @@
 [package]
 name = "i2cdev-bmp280"
-version = "0.1.3"
+version = "0.1.4"
 authors = ["martindeegan <mddeegan@gmail.com>"]
 repository = "https://github.com/martindeegan/i2cdev-sensors"
 description = "I2C driver for the BMP280 barometer, thermometer."
