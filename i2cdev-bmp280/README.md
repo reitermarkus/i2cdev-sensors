@@ -12,7 +12,7 @@ i2cdev-bmp280 = "0.1.*"
 ```
 
 Next, add this to your crate root:
-```toml
+```rust
 extern crate i2cdev_bmp280;
 extern crate i2csensors;
 ```
@@ -40,6 +40,8 @@ fn main() {
     let pressure = bmp280.pressure_kpa().unwrap());
 }
 ```
+
+Settings can be adjusted according to the [datasheet](https://cdn-shop.adafruit.com/datasheets/BST-BMP280-DS001-11.pdf).
 
 
 
