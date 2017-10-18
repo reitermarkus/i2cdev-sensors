@@ -2,7 +2,9 @@
 name = "i2cdev-lsm303dlhc"
 version = "1.0.0"
 authors = ["martindeegan <mddeegan@gmail.com>", "Thomas Deegan <tadeegan@gmail.com>"]
-description = "LSM303DLHC accelerometer, magnetometer I2C driver"
+repository = "https://github.com/martindeegan/i2cdev-sensors"
+description = "I2C driver for the LSM303DLHC accelerometer, magnetometer."
+readme = "README.md"
 license = "MIT/Apache-2.0"
 
 [lib]
