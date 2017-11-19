@@ -21,7 +21,6 @@ use std::thread;
 use std::time::Duration;
 use std::error::Error;
 use i2cdev::core::I2CDevice;
-#[cfg(any(target_os = "linux", target_os = "android"))]
 use i2cdev::linux::{LinuxI2CDevice,LinuxI2CError};
 use byteorder::{ByteOrder, BigEndian, LittleEndian};
 
