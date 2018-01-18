@@ -1,34 +1,17 @@
-L3GD20
-====
-
-An I2C driver for the L3GD20 (and L3GD20H) gyroscope.
-
-## Examples
-
-```bash
-cargo run --example l3gd20h
-cargo run --example l3gd20
-```
-
-## Usage
-Add the following to your `Cargo.toml`:
-```toml
-[dependencies]
-i2csensors = "0.1.*"
-i2cdev-l3gd20 = "0.1.*"
-```
-
-Next, add this to your crate root:
-```rust
 extern crate i2cdev_l3gd20;
 extern crate i2csensors;
-```
 
-### Initializing and reading from an L3GD20
-```rust
 use i2cdev_l3gd20::*;
 use i2csensors::{Gyroscope,Vec3};
+use std::thread;
+use std::time::Duration;
 
+#[cfg(not(any(target_os = "linux", target_os = "android")))]
+fn main() {
+
+}
+
+#[cfg(any(target_os = "linux", target_os = "android"))]
 fn main() {
     let settings = L3GD20GyroscopeSettings {
         DR: L3GD20GyroscopeDataRate::Hz190,
@@ -44,15 +27,13 @@ fn main() {
         high_pass_filter_configuration: Some(L3GD20HighPassFilterCutOffConfig::HPCF_0)
     };
 
-    let mut i2cdev = get_linux_l3gd20_i2c_device().unwrap();
+    let mut i2cdev = get_linux_l3gd20h_i2c_device().unwrap();
 
     let mut l3gd20_gyro = L3GD20::new(i2cdev, settings).unwrap();
 
-    let angular_rate = l3gd20_gyro.angular_rate_reading().unwrap();
+    loop {
+        let reading = l3gd20_gyro.angular_rate_reading().unwrap();
+        println!("x: {}, y: {}, z: {}", format!("{:.*}", 2, reading.x), format!("{:.*}", 2, reading.y), format!("{:.*}", 2, reading.z));
+        thread::sleep(Duration::from_millis(50));
+    }
 }
-```
-
-Settings can be adjusted according to the [datasheet](https://www.pololu.com/file/0J563/L3GD20.pdf).
-
-
-
