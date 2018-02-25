@@ -137,5 +137,10 @@ impl<T> Altimeter for T
     }
 }
 
+/// Trait for sensors that provide access to humidity readings
+pub trait Hygrometer {
+    type Error: Error;
 
-
+    /// Read the relative humidity from the sensor in percent
+    fn relative_humidity(&mut self) -> Result<f32, Self::Error>;
+}
