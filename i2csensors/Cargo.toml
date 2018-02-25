@@ -1,6 +1,6 @@
 [package]
 name = "i2csensors"
-version = "0.1.2"
+version = "0.1.3"
 authors = ["martindeegan <mddeegan@gmail.com>"]
 description = "Traits for I2C sensors."
 repository = "https://github.com/martindeegan/i2cdev-sensors"
