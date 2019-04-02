@@ -1,6 +1,6 @@
 [package]
 name = "i2cdev-bmp180"
-version = "0.1.0"
+version = "0.2.0"
 authors = ["martindeegan <mddeegan@gmail.com>"]
 repository = "https://github.com/martindeegan/i2cdev-sensors"
 description = "I2C driver for the BMP180 barometer, thermometer."
@@ -8,6 +8,6 @@ readme = "README.md"
 license = "MIT/Apache-2.0"
 
 [dependencies]
-i2cdev = "0.3.1"
+i2cdev = "0.4.*"
 byteorder = "1"
 i2csensors = "0.1.*"
